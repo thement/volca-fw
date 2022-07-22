@@ -1,4 +1,4 @@
-CC=diet gcc
+CC=gcc
 XCC=i686-w64-mingw32-gcc
 XLD=i686-w64-mingw32-ld
 XAR=i686-w64-mingw32-ar
@@ -12,18 +12,17 @@ XDLLTOOL=i686-w64-mingw32-dlltool
 XDLLWRAP=i686-w64-mingw32-dllwrap
 LC_ALL=C
 SED=sed
+PROGS=volca_fw_encode volca_fw_decode
 
-CFLAGS=-Wall -O2
-XCFLAGS=-Wall -O2
+CFLAGS=-Wall
+XCFLAGS=-Wall
 
-all:	volca_fw_encode volca_fw_encode.exe volca_fw_decode volca_fw_decode.exe
+all: $(PROGS)
 
 ENCODE_OBJ = volca_fw_encode.o volca_syro.o volca_syro_func.o
 DECODE_OBJ = volca_fw_decode.o volca_syro_func.o
 ENCODE_WOBJ = volca_fw_encode.obj volca_syro.obj volca_syro_func.obj
 DECODE_WOBJ = volca_fw_decode.obj volca_syro_func.obj
-
-.INTERMEDIATE: $(ENCODE_OBJ) $(DECODE_OBJ) $(ENCODE_WOBJ) $(DECODE_WOBJ)
 
 %.o:    %.c
 	$(CC) $(CFLAGS) -c $<
@@ -49,6 +48,8 @@ wav:	volca_fw_encode
 	dd if=/dev/urandom of=random.data count=128
 	./$< random.data
 
+.PHONY: clean
+
 clean:
-	rm -f *.o random.*
+	rm -f *.o random.* $(PROGS)
 
