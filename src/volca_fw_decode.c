@@ -223,7 +223,6 @@ decode_qam( short *samples, int frames, uint8_t * rec )
 {
   int           i, j, len, smp;
   char          bits;
-  unsigned      word;
   short        *smp_i, *smp_q;
 
   if( ( smp_i = malloc( frames * 2 * sizeof( short ) ) ) == NULL ||
@@ -278,66 +277,36 @@ decode_qam( short *samples, int frames, uint8_t * rec )
 #endif
   for( i = 0; i < 2 * frames; i += 2 * 8 )
   {
-    int           lr, mag;
+    int           lr;
 
     bits = 0;
     for( lr = 0; lr < 2; lr++ )
     {
       bits <<= 4;
-      word = 0;
-      for( j = 0; j < 2 * 8; j += 4 )
-      {
-	word <<= 4;
-	if( smp_i[i + j + lr] == 0 )
-	{
-	  word |= 1;
-	  if( smp_q[i + j + lr] < 0 )
-	    word |= 2;
-	  mag = smp_q[i + j + lr] * smp_q[i + j + lr];
-	  if( mag > 250000000 )
-	    word |= 4;
-	}
-	else if( smp_q[i + j + lr] == 0 )
-	{
-	  word |= 0;
-	  if( smp_i[i + j + lr] < 0 )
-	    word |= 2;
-	  mag = smp_i[i + j + lr] * smp_i[i + j + lr];
-	  if( mag > 250000000 )
-	    word |= 4;
-	}
+
+      int sum_i = 0, sum_q = 0;
+
+      for (j = 0; j < 2 * 8; j += 2) {
+	sum_i += smp_i[i + j + lr];
+	sum_q += smp_q[i + j + lr];
+      }
+      sum_i /= 8;
+      sum_q /= 8;
+
+      int mag_sq = sum_i * sum_i + sum_q * sum_q;
+      int rot_i = sum_i - sum_q;
+      int rot_q = sum_i + sum_q;
+
+      if (mag_sq < 0x100000) {
+	printf( "failed at sample %d\n", i + j + lr );
+      } else {
+	if (mag_sq >= 0x4000000)
+	  bits |= 1;
+
+	if (rot_i < 0)
+	  bits |= rot_q < 0 ? 4 : 2;
 	else
-	{
-	  printf( "failed at sample %d\n", i + j + lr );
-	}
-	word &= 0x1fff;
-	switch ( word )
-	{
-	  case 0x1030:
-	    bits |= 0;
-	    break;
-	  case 0x1434:
-	    bits |= 1;
-	    break;
-	  case 0x1010:
-	    bits |= 2;
-	    break;
-	  case 0x1050:
-	    bits |= 3;
-	    break;
-	  case 0x1212:
-	    bits |= 4;
-	    break;
-	  case 0x1616:
-	    bits |= 5;
-	    break;
-	  case 0x1232:
-	    bits |= 6;
-	    break;
-	  case 0x1272:
-	    bits |= 7;
-	    break;
-	}
+	  bits |= rot_q < 0 ? 6 : 0;
       }
     }
     rec[len++] = bits;

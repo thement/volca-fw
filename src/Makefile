@@ -31,14 +31,14 @@ DECODE_WOBJ = volca_fw_decode.obj volca_syro_func.obj
 	$(XCC) $(XCFLAGS) -c $< -o $@
 
 volca_fw_encode: $(ENCODE_OBJ)
-	$(CC) $(CFLAGS) -s -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^
 
 volca_fw_encode.exe: $(ENCODE_WOBJ)
 	$(XCC) $(CFLAGS) -o $@ $^
 	$(XSTRIP) --strip-all $@
 
 volca_fw_decode: $(DECODE_OBJ)	
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ -lm
 
 volca_fw_decode.exe: $(DECODE_WOBJ)	
 	$(XCC) $(CFLAGS) -o $@ $^
