@@ -425,6 +425,13 @@ main( int argc, char *argv[] )
 	len = decode_fsk( samples, frames, rec );
       else if( ch == 2 )
 	len = decode_qam( samples, frames, rec );
+      FILE *frec = fopen("rec.bin", "wb");
+      if (frec == NULL) {
+	printf("cannot open rec.bin\n");
+	exit(1);
+      }
+      fwrite(rec, len, 1, frec);
+      fclose(frec);
     }
     fclose( ifh );
     if( ( p = strrchr( fname, '.' ) ) == NULL )
